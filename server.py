@@ -1,5 +1,5 @@
-from fastapi import FastAPI, UploadFile, File
-from fastapi.responses import JSONResponse
+from fastapi import FastAPI, Request, UploadFile, File
+from fastapi.responses import JSONResponse, HTMLResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from skimage.metrics import structural_similarity as ssim
@@ -7,6 +7,7 @@ import cv2
 import numpy as np
 import os
 import uuid
+from fastapi.templating import Jinja2Templates
 
 app = FastAPI()
 
@@ -18,8 +19,15 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+templates = Jinja2Templates(directory="templates")
+
 os.makedirs("images", exist_ok=True)
 app.mount("/images", StaticFiles(directory="images"), name="images")
+
+
+@app.get("/", response_class=HTMLResponse)
+async def read_root(request: Request):
+    return templates.TemplateResponse("index.html", {"request": request})
 
 
 def compare_with_ssim(ref_bytes, img_bytes):

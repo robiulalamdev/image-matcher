@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IM - Image Matcher</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            light: '#A78BFA',
+                            DEFAULT: '#8B5CF6',
+                            dark: '#7C3AED'
+                        },
+                        secondary: {
+                            light: '#C4B5FD',
+                            DEFAULT: '#6D28D9',
+                            dark: '#5B21B6'
+                        },
+                        darkbg: {
+                            light: '#1F2937',
+                            DEFAULT: '#111827',
+                            dark: '#0F172A'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Advanced AI Loader Animation */
+        .ai-loader {
+            width: 120px;
+            height: 60px;
+            margin: 0 auto;
+            position: relative;
+        }
+        .ai-loader .dot {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background-color: #8B5CF6;
+            animation: dot-move 1.8s infinite ease-in-out;
+        }
+        .ai-loader .dot:nth-child(1) { left: 0; animation-delay: -0.32s; }
+        .ai-loader .dot:nth-child(2) { left: 40px; animation-delay: -0.16s; }
+        .ai-loader .dot:nth-child(3) { left: 80px; animation-delay: 0s; }
+        
+        @keyframes dot-move {
+            0%, 80%, 100% { transform: scale(0.8); opacity: 0.5; }
+            40% { transform: scale(1.2); opacity: 1; }
+        }
+        
+        /* Pulse Animation for Button */
+        @keyframes pulse-animation {
+            0% { box-shadow: 0 0 0 0 rgba(139, 92, 246, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(139, 92, 246, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(139, 92, 246, 0); }
+        }
+        
+        .pulse-button {
+            animation: pulse-animation 2s infinite;
+        }
+        
+        /* Gradient Background */
+        .gradient-bg {
+            background: linear-gradient(135deg, #111827 0%, #1E3A8A 100%);
+        }
+        
+        /* Glassmorphism */
+        .glass-effect {
+            backdrop-filter: blur(16px) saturate(180%);
+            -webkit-backdrop-filter: blur(16px) saturate(180%);
+            background-color: rgba(17, 25, 40, 0.75);
+            border: 1px solid rgba(255, 255, 255, 0.125);
+        }
+    </style>
+</head>
+
+<body class="min-h-screen gradient-bg text-white">
+    <div class="container mx-auto px-4 py-8 max-w-5xl">
+        <!-- Header -->
+        <header class="mb-8 text-center">
+            <div class="flex justify-center items-center mb-2">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-primary-light mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+                <h1 class="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-primary-light to-secondary">Image Matcher</h1>
+            </div>
+            <p class="text-gray-300">Upload two images to compare and find differences</p>
+        </header>
+
+        <!-- Upload Form -->
+        <div class="glass-effect rounded-xl p-6 shadow-xl mb-8 border border-gray-700">
+            <form id="uploadForm" class="space-y-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Reference Image Upload -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-300 mb-2">Reference Image</label>
+                        <div class="border-2 border-dashed border-gray-600 rounded-lg p-4 text-center hover:border-primary transition-colors">
+                            <input type="file" id="referenceImage" accept="image/*" class="hidden">
+                            <label for="referenceImage" class="cursor-pointer">
+                                <div id="referencePreview" class="h-48 flex items-center justify-center">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                    </svg>
+                                    <p class="text-gray-500 mt-2">Click to upload reference image</p>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Comparison Image Upload -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-300 mb-2">Comparison Image</label>
+                        <div class="border-2 border-dashed border-gray-600 rounded-lg p-4 text-center hover:border-primary transition-colors">
+                            <input type="file" id="comparisonImage" accept="image/*" class="hidden">
+                            <label for="comparisonImage" class="cursor-pointer">
+                                <div id="comparisonPreview" class="h-48 flex items-center justify-center">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                    </svg>
+                                    <p class="text-gray-500 mt-2">Click to upload comparison image</p>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Submit Button -->
+                <div class="text-center">
+                    <button type="submit" id="compareBtn" class="bg-gradient-to-r from-primary to-secondary hover:from-primary-dark hover:to-secondary-dark text-white font-bold py-3 px-8 rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed pulse-button">
+                        Compare Images
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Results (Hidden by default) -->
+        <div id="resultsContainer" class="hidden glass-effect rounded-xl p-6 shadow-xl border border-gray-700">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-primary-light to-secondary">Results</h2>
+                <div class="flex space-x-2">
+                    <button id="captureResultBtn" class="bg-gray-600 hover:bg-gray-700 text-white px-3 py-1 rounded-lg flex items-center text-sm">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                        </svg>
+                        Capture
+                    </button>
+                    <button id="tryAgainBtn" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded-lg flex items-center text-sm">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                        </svg>
+                        Try Again
+                    </button>
+                </div>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                <!-- Match Status -->
+                <div class="bg-gray-700/50 rounded-lg p-4 flex items-center shadow-md">
+                    <div id="matchStatusIcon" class="mr-4 text-2xl"></div>
+                    <div>
+                        <h3 class="font-medium text-lg text-gray-200">Match Status</h3>
+                        <p id="matchStatus" class="text-xl font-bold"></p>
+                    </div>
+                </div>
+                
+                <!-- Match Percentage -->
+                <div class="bg-gray-700/50 rounded-lg p-4 shadow-md">
+                    <h3 class="font-medium text-lg mb-2 text-gray-200">Match Percentage</h3>
+                    <div class="relative pt-1">
+                        <div class="overflow-hidden h-4 text-xs flex rounded bg-gray-600">
+                            <div id="percentageBar" class="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-primary transition-all duration-500"></div>
+                        </div>
+                        <p id="matchPercentage" class="text-right mt-1 font-bold"></p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Difference Image -->
+            <div id="differenceImageContainer" class="hidden">
+                <div class="flex justify-between items-center mb-2">
+                    <h3 class="font-medium text-lg text-gray-200">Difference Detected</h3>
+                    <button id="downloadDiffBtn" class="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded-lg flex items-center text-sm">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                        </svg>
+                        Download
+                    </button>
+                </div>
+                <p class="text-gray-400 mb-4">Areas with differences are highlighted below:</p>
+                <div class="bg-gray-700/50 rounded-lg p-4 flex justify-center shadow-md">
+                    <img id="differenceImage" class="max-w-full max-h-96 object-contain" alt="Image showing differences">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Overlay (Hidden by default) -->
+    <div id="loadingOverlay" class="fixed inset-0 flex items-center justify-center z-50 hidden">
+        <div class="absolute inset-0 bg-black opacity-70"></div>
+        <div class="relative z-10 bg-gray-800 p-8 rounded-xl shadow-2xl text-center max-w-md mx-auto border border-gray-700">
+            <div class="ai-loader mb-6">
+                <div class="dot"></div>
+                <div class="dot"></div>
+                <div class="dot"></div>
+            </div>
+            <h3 class="text-xl font-bold mb-2 text-white">Analyzing Images</h3>
+            <p class="text-gray-300 mb-4">Please wait while we process your images...</p>
+            <div class="w-full bg-gray-700 rounded-full h-2.5">
+                <div id="progressBar" class="bg-primary h-2.5 rounded-full" style="width: 0%"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Preview uploaded images
+        function previewImage(input, previewId) {
+            const preview = document.getElementById(previewId);
+            const file = input.files[0];
+            
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    preview.innerHTML = `<img src="${e.target.result}" class="h-full mx-auto object-contain" />`;
+                }
+                reader.readAsDataURL(file);
+            }
+        }
+        
+        document.getElementById('referenceImage').addEventListener('change', function() {
+            previewImage(this, 'referencePreview');
+            resetResults();
+        });
+        
+        document.getElementById('comparisonImage').addEventListener('change', function() {
+            previewImage(this, 'comparisonPreview');
+            resetResults();
+        });
+        
+        // Reset results when new images are uploaded
+        function resetResults() {
+            document.getElementById('resultsContainer').classList.add('hidden');
+            document.getElementById('differenceImageContainer').classList.add('hidden');
+        }
+        
+        // Try Again button
+        document.getElementById('tryAgainBtn').addEventListener('click', function() {
+            resetResults();
+            document.getElementById('uploadForm').scrollIntoView({ behavior: 'smooth' });
+        });
+        
+        // Fake progress for loading animation
+        function simulateProgress() {
+            const progressBar = document.getElementById('progressBar');
+            let width = 0;
+            const interval = setInterval(function() {
+                if (width >= 90) {
+                    clearInterval(interval);
+                } else {
+                    width += Math.random() * 10;
+                    if (width > 90) width = 90;
+                    progressBar.style.width = width + '%';
+                }
+            }, 300);
+            return interval;
+        }
+        
+        // Form submission
+        document.getElementById('uploadForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const referenceFile = document.getElementById('referenceImage').files[0];
+            const comparisonFile = document.getElementById('comparisonImage').files[0];
+            
+            if (!referenceFile || !comparisonFile) {
+                alert('Please select both reference and comparison images');
+                return;
+            }
+            
+            // Show loading overlay
+            document.getElementById('loadingOverlay').classList.remove('hidden');
+            document.getElementById('compareBtn').disabled = true;
+            
+            // Simulate progress
+            const progressInterval = simulateProgress();
+            
+            // Create FormData
+            const formData = new FormData();
+            formData.append('reference', referenceFile);
+            formData.append('image', comparisonFile);
+            
+            try {
+                // Send request to API
+                const response = await fetch('https://image-matcher.onrender.com/compare', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                if (!response.ok) {
+                    throw new Error('API request failed');
+                }
+                
+                const result = await response.json();
+                
+                // Complete progress bar
+                clearInterval(progressInterval);
+                document.getElementById('progressBar').style.width = '100%';
+                
+                // Small delay to show completed progress
+                setTimeout(() => {
+                    // Hide loading overlay
+                    document.getElementById('loadingOverlay').classList.add('hidden');
+                    document.getElementById('compareBtn').disabled = false;
+                    
+                    // Display results
+                    displayResults(result);
+                    
+                    // Scroll to results
+                    document.getElementById('resultsContainer').scrollIntoView({ behavior: 'smooth' });
+                }, 500);
+                
+            } catch (error) {
+                console.error('Error:', error);
+                clearInterval(progressInterval);
+                document.getElementById('loadingOverlay').classList.add('hidden');
+                document.getElementById('compareBtn').disabled = false;
+                alert('An error occurred while comparing images. Please try again.');
+            }
+        });
+        
+        // Display results
+        function displayResults(result) {
+            const resultsContainer = document.getElementById('resultsContainer');
+            const matchStatus = document.getElementById('matchStatus');
+            const matchStatusIcon = document.getElementById('matchStatusIcon');
+            const matchPercentage = document.getElementById('matchPercentage');
+            const percentageBar = document.getElementById('percentageBar');
+            const differenceImageContainer = document.getElementById('differenceImageContainer');
+            const differenceImage = document.getElementById('differenceImage');
+            const downloadDiffBtn = document.getElementById('downloadDiffBtn');
+            
+            // Update match status
+            if (result.is_match) {
+                matchStatus.textContent = 'Images Match';
+                matchStatus.className = 'text-xl font-bold text-green-400';
+                matchStatusIcon.innerHTML = '✅';
+            } else {
+                matchStatus.textContent = 'Images Do Not Match';
+                matchStatus.className = 'text-xl font-bold text-red-400';
+                matchStatusIcon.innerHTML = '❌';
+            }
+            
+            // Update percentage
+            matchPercentage.textContent = `${result.match_percent.toFixed(2)}%`;
+            percentageBar.style.width = `${result.match_percent}%`;
+            
+            // Color the percentage bar based on match percentage
+            if (result.match_percent > 95) {
+                percentageBar.className = 'shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-green-500 transition-all duration-500';
+            } else if (result.match_percent > 80) {
+                percentageBar.className = 'shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-yellow-500 transition-all duration-500';
+            } else {
+                percentageBar.className = 'shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-red-500 transition-all duration-500';
+            }
+            
+            // Show difference image if available
+            if (!result.is_match && result.image_url) {
+                const fullImageUrl = `https://image-matcher.onrender.com${result.image_url}`;
+                differenceImage.src = fullImageUrl;
+                differenceImageContainer.classList.remove('hidden');
+                
+                // Set up download button for difference image
+                downloadDiffBtn.addEventListener('click', function() {
+                    downloadImage(fullImageUrl, 'difference-image.jpg');
+                });
+            } else {
+                differenceImageContainer.classList.add('hidden');
+            }
+            
+            // Show results container
+            resultsContainer.classList.remove('hidden');
+        }
+        
+        // Download image function
+        function downloadImage(url, filename) {
+            fetch(url)
+                .then(response => response.blob())
+                .then(blob => {
+                    const link = document.createElement('a');
+                    link.href = URL.createObjectURL(blob);
+                    link.download = filename;
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                })
+                .catch(error => {
+                    console.error('Error downloading image:', error);
+                    alert('Failed to download image. Please try again.');
+                });
+        }
+        
+        // Capture results function
+        document.getElementById('captureResultBtn').addEventListener('click', function() {
+            const resultsContainer = document.getElementById('resultsContainer');
+            
+            // Add a temporary class to improve the screenshot
+            resultsContainer.classList.add('screenshot-mode');
+            
+            html2canvas(resultsContainer).then(canvas => {
+                resultsContainer.classList.remove('screenshot-mode');
+                
+                // Create download link
+                const link = document.createElement('a');
+                link.download = 'image-comparison-results.png';
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+            }).catch(error => {
+                console.error('Error capturing results:', error);
+                resultsContainer.classList.remove('screenshot-mode');
+                alert('Failed to capture results. Please try again.');
+            });
+        });
+    </script>
+</body>
+</html>
