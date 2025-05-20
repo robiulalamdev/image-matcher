@@ -68,7 +68,7 @@ def compare_with_ssim(ref_bytes, img_bytes):
         path = os.path.join("images", filename)
         cv2.imwrite(path, img_color)
 
-
+# Return the match status, match percentage, and filename (if any) of the comparison
     return is_match, score * 100, filename
 
 
