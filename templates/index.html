@@ -130,13 +130,26 @@
                                 </div>
                             </label>
                         </div>
+                        <!-- New button to remove comparison image only (hidden by default) -->
+                        <div class="mt-2 text-right">
+                            <button type="button" id="removeComparisonBtn" class="hidden bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded-lg flex items-center text-sm ml-auto">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                </svg>
+                                Remove Comparison
+                            </button>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Submit Button -->
-                <div class="text-center">
+                <!-- Submit and Reset Buttons -->
+                <div class="flex justify-center space-x-4">
                     <button type="submit" id="compareBtn" class="bg-gradient-to-r from-primary to-secondary hover:from-primary-dark hover:to-secondary-dark text-white font-bold py-3 px-8 rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed pulse-button">
                         Compare Images
+                    </button>
+                    <!-- Reset button (hidden by default) -->
+                    <button type="button" id="resetBtn" class="hidden bg-gray-600 hover:bg-gray-700 text-white font-bold py-3 px-8 rounded-lg transition-all">
+                        Reset All
                     </button>
                 </div>
             </form>
@@ -222,6 +235,32 @@
     </div>
 
     <script>
+        // API base URL variable for common use
+        const API_BASE_URL = 'http://127.0.0.1:8000';
+        
+        // Track current difference image URL
+        let currentDifferenceImageUrl = null;
+        
+        // Check if any images are uploaded
+        function checkImagesUploaded() {
+            const referenceFile = document.getElementById('referenceImage').files[0];
+            const comparisonFile = document.getElementById('comparisonImage').files[0];
+            
+            // Show/hide remove comparison button
+            if (comparisonFile) {
+                document.getElementById('removeComparisonBtn').classList.remove('hidden');
+            } else {
+                document.getElementById('removeComparisonBtn').classList.add('hidden');
+            }
+            
+            // Show/hide reset button
+            if (referenceFile || comparisonFile) {
+                document.getElementById('resetBtn').classList.remove('hidden');
+            } else {
+                document.getElementById('resetBtn').classList.add('hidden');
+            }
+        }
+        
         // Preview uploaded images
         function previewImage(input, previewId) {
             const preview = document.getElementById(previewId);
@@ -234,6 +273,9 @@
                 }
                 reader.readAsDataURL(file);
             }
+            
+            // Check if buttons should be shown/hidden
+            checkImagesUploaded();
         }
         
         document.getElementById('referenceImage').addEventListener('change', function() {
@@ -250,7 +292,56 @@
         function resetResults() {
             document.getElementById('resultsContainer').classList.add('hidden');
             document.getElementById('differenceImageContainer').classList.add('hidden');
+            // Reset current difference image URL
+            currentDifferenceImageUrl = null;
         }
+        
+        // Reset comparison image only
+        document.getElementById('removeComparisonBtn').addEventListener('click', function() {
+            // Clear the file input
+            document.getElementById('comparisonImage').value = '';
+            
+            // Reset the preview
+            document.getElementById('comparisonPreview').innerHTML = `
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+                <p class="text-gray-500 mt-2">Click to upload comparison image</p>
+            `;
+            
+            // Reset results
+            resetResults();
+            
+            // Update button visibility
+            checkImagesUploaded();
+        });
+        
+        // Reset all images
+        document.getElementById('resetBtn').addEventListener('click', function() {
+            // Clear both file inputs
+            document.getElementById('referenceImage').value = '';
+            document.getElementById('comparisonImage').value = '';
+            
+            // Reset both previews
+            document.getElementById('referencePreview').innerHTML = `
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+                <p class="text-gray-500 mt-2">Click to upload reference image</p>
+            `;
+            document.getElementById('comparisonPreview').innerHTML = `
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+                <p class="text-gray-500 mt-2">Click to upload comparison image</p>
+            `;
+            
+            // Reset results
+            resetResults();
+            
+            // Update button visibility
+            checkImagesUploaded();
+        });
         
         // Try Again button
         document.getElementById('tryAgainBtn').addEventListener('click', function() {
@@ -299,8 +390,8 @@
             formData.append('image', comparisonFile);
             
             try {
-                // Send request to API
-                const response = await fetch('https://image-matcher.onrender.com/compare', {
+                // Send request to API using the base URL variable
+                const response = await fetch(`${API_BASE_URL}/compare`, {
                     method: 'POST',
                     body: formData
                 });
@@ -346,7 +437,6 @@
             const percentageBar = document.getElementById('percentageBar');
             const differenceImageContainer = document.getElementById('differenceImageContainer');
             const differenceImage = document.getElementById('differenceImage');
-            const downloadDiffBtn = document.getElementById('downloadDiffBtn');
             
             // Update match status
             if (result.is_match) {
@@ -374,16 +464,13 @@
             
             // Show difference image if available
             if (!result.is_match && result.image_url) {
-                const fullImageUrl = `https://image-matcher.onrender.com${result.image_url}`;
-                differenceImage.src = fullImageUrl;
+                // Store the current difference image URL
+                currentDifferenceImageUrl = `${API_BASE_URL}${result.image_url}`;
+                differenceImage.src = currentDifferenceImageUrl;
                 differenceImageContainer.classList.remove('hidden');
-                
-                // Set up download button for difference image
-                downloadDiffBtn.addEventListener('click', function() {
-                    downloadImage(fullImageUrl, 'difference-image.jpg');
-                });
             } else {
                 differenceImageContainer.classList.add('hidden');
+                currentDifferenceImageUrl = null;
             }
             
             // Show results container
@@ -408,6 +495,15 @@
                 });
         }
         
+        // Set up download button for difference image - using event delegation
+        document.getElementById('downloadDiffBtn').addEventListener('click', function() {
+            if (currentDifferenceImageUrl) {
+                downloadImage(currentDifferenceImageUrl, 'difference-image.jpg');
+            } else {
+                alert('No difference image available to download.');
+            }
+        });
+        
         // Capture results function
         document.getElementById('captureResultBtn').addEventListener('click', function() {
             const resultsContainer = document.getElementById('resultsContainer');
@@ -429,6 +525,9 @@
                 alert('Failed to capture results. Please try again.');
             });
         });
+        
+        // Initialize button visibility on page load
+        checkImagesUploaded();
     </script>
 </body>
 </html>
